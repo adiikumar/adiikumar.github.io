@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aditya Kumar · CFD, HPC &amp; Physics-Informed ML</title>
+<meta name="description" content="Aditya Kumar: CFD, HPC, and physics-informed machine learning. MS Aeronautics &amp; Astronautics, University of Washington.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0a0e12; --ink-2:#0f151a; --surface:#131a20; --line:#212a31;
+    --text:#eae6da; --text-muted:#8b9199;
+    --vort-pos:#e8542a; --vort-neg:#2596a1; --amber:#d9a441;
+    --font-display:'Fraunces','Georgia',serif;
+    --font-body:'Inter',system-ui,sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,monospace;
+    --radius:3px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--ink); color:var(--text); font-family:var(--font-body); line-height:1.6; -webkit-font-smoothing:antialiased;}
+  a{color:inherit; text-decoration:none;}
+  ::selection{background:var(--vort-pos); color:var(--ink);}
+
+  /* ---------- nav ---------- */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:22px 40px; mix-blend-mode:difference;
+  }
+  .nav-name{font-family:var(--font-mono); font-size:13px; letter-spacing:0.02em; color:var(--text);}
+  .nav-links{display:flex; gap:28px; font-family:var(--font-mono); font-size:12px; letter-spacing:0.03em; text-transform:uppercase;}
+  .nav-links a{opacity:0.75; transition:opacity .2s;}
+  .nav-links a:hover{opacity:1;}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative; height:100vh; min-height:660px; display:flex; align-items:flex-end; overflow:hidden; border-bottom:1px solid var(--line);}
+  #tgv-canvas{position:absolute; inset:0; width:100%; height:100%; z-index:0;}
+  .hero::after{
+    content:""; position:absolute; inset:0; z-index:1;
+    background:linear-gradient(180deg, rgba(10,14,18,0.15) 0%, rgba(10,14,18,0.35) 55%, rgba(10,14,18,0.92) 100%);
+  }
+  .hero-content{position:relative; z-index:2; padding:0 40px 76px; max-width:920px;}
+  .hero-eyebrow{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--vort-neg); margin-bottom:18px; display:flex; align-items:center; gap:10px;
+  }
+  .hero-eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--vort-pos); box-shadow:0 0 8px var(--vort-pos);}
+  h1.hero-title{
+    font-family:var(--font-display); font-weight:500;
+    font-size:clamp(2.6rem, 6.4vw, 4.6rem); line-height:1.02; letter-spacing:-0.015em;
+  }
+  .credentials{
+    margin-top:20px; font-family:var(--font-mono); font-size:12.5px; line-height:2;
+    color:var(--text-muted); letter-spacing:0.01em;
+  }
+  .credentials span{display:block;}
+  .hero-sub{margin-top:22px; max-width:54ch; font-size:1.08rem; color:var(--text-muted);}
+  .hero-actions{margin-top:34px; display:flex; gap:16px; flex-wrap:wrap;}
+  .btn{font-family:var(--font-mono); font-size:13px; letter-spacing:0.02em; padding:12px 22px; border:1px solid var(--line); border-radius:var(--radius); transition:all .2s;}
+  .btn-primary{background:var(--text); color:var(--ink); border-color:var(--text);}
+  .btn-primary:hover{background:var(--vort-pos); border-color:var(--vort-pos); color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--text-muted); background:rgba(255,255,255,0.04);}
+
+  /* ---------- sections ---------- */
+  section{padding:100px 40px; max-width:1180px; margin:0 auto;}
+  .section-label{font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--vort-neg); margin-bottom:14px;}
+  h2.section-title{font-family:var(--font-display); font-weight:500; font-size:clamp(1.8rem,3.2vw,2.5rem); max-width:20ch; margin-bottom:26px;}
+
+  /* ---------- about ---------- */
+  .about-grid{display:grid; grid-template-columns:260px 1fr; gap:52px; align-items:start;}
+  .headshot-wrap{position:relative;}
+  .headshot{width:100%; display:block; border-radius:var(--radius); border:1px solid var(--line);}
+  .headshot-cap{display:block; font-family:var(--font-mono); font-size:11px; color:var(--text-muted); margin-top:12px; line-height:1.5;}
+  .bio p{max-width:68ch; font-size:1.04rem; color:var(--text-muted); margin-bottom:18px;}
+  .bio p:last-child{margin-bottom:0;}
+  .bio a{color:var(--vort-neg); border-bottom:1px solid rgba(37,150,161,0.35);}
+  .bio a:hover{border-bottom-color:var(--vort-neg);}
+  .bio .pull{
+    font-family:var(--font-display); font-size:clamp(1.15rem,2vw,1.4rem); line-height:1.5;
+    color:var(--text); border-left:2px solid var(--vort-pos); padding-left:22px; margin:28px 0; max-width:60ch;
+  }
+
+  /* ---------- domain strip ---------- */
+  .domains{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin-top:56px;}
+  .domain-cell{background:var(--ink-2); padding:30px 28px;}
+  .domain-cell .num{font-family:var(--font-mono); font-size:12px; color:var(--text-muted); margin-bottom:10px;}
+  .domain-cell h3{font-family:var(--font-display); font-weight:500; font-size:1.2rem; margin-bottom:10px;}
+  .domain-cell p{font-size:0.92rem; color:var(--text-muted);}
+
+  /* ---------- featured projects ---------- */
+  .proj-grid{display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); margin-top:48px;}
+  .proj-card{background:var(--ink-2); padding:40px; display:grid; grid-template-columns:1fr 1.6fr; gap:40px; align-items:start;}
+  .proj-visual{aspect-ratio:4/3; border-radius:var(--radius); border:1px solid var(--line); overflow:hidden; background:linear-gradient(135deg,var(--surface),var(--ink)); display:flex; align-items:center; justify-content:center; position:relative;}
+  .proj-visual-static{background:linear-gradient(150deg,var(--surface) 0%, var(--ink) 70%);}
+  .proj-visual-label{font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-muted); border:1px solid var(--line); padding:6px 12px; border-radius:20px;}
+  .proj-visual-img{width:100%; height:100%; object-fit:cover; display:block;}
+  .proj-tags{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .tag{font-family:var(--font-mono); font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase; padding:4px 9px; border:1px solid var(--line); border-radius:2px; color:var(--text-muted);}
+  .proj-card h3{font-family:var(--font-display); font-weight:500; font-size:1.5rem; margin-bottom:12px;}
+  .proj-card p.desc{color:var(--text-muted); font-size:0.96rem; margin-bottom:18px; max-width:60ch;}
+  .result-row{display:flex; gap:28px; flex-wrap:wrap; margin-bottom:18px;}
+  .result-item{font-family:var(--font-mono);}
+  .result-item .val{font-size:1.3rem; color:var(--vort-pos); display:block;}
+  .result-item .lbl{font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.03em;}
+  .proj-links{display:flex; gap:14px;}
+  .proj-links a{font-family:var(--font-mono); font-size:12px; color:var(--vort-neg); border-bottom:1px solid transparent;}
+  .proj-links a:hover{border-bottom-color:var(--vort-neg);}
+  .see-all{margin-top:32px; font-family:var(--font-mono); font-size:13px; color:var(--vort-neg); display:inline-block; border-bottom:1px solid transparent;}
+  .see-all:hover{border-bottom-color:var(--vort-neg);}
+
+  /* ---------- contact ---------- */
+  .contact-box{border:1px solid var(--line); background:var(--ink-2); padding:44px 40px;}
+  .contact-box h2{font-family:var(--font-display); font-weight:500; font-size:clamp(1.5rem,2.6vw,2rem); margin-bottom:14px; max-width:22ch;}
+  .contact-box p{color:var(--text-muted); max-width:56ch; margin-bottom:26px;}
+  .contact-actions{display:flex; gap:14px; flex-wrap:wrap;}
+
+  @media (max-width:820px){
+    .proj-card{grid-template-columns:1fr;}
+    .domains{grid-template-columns:1fr;}
+    .about-grid{grid-template-columns:1fr; gap:30px;}
+    .headshot-wrap{max-width:220px;}
+    nav{padding:18px 20px;}
+    .hero-content{padding:0 20px 52px;}
+    section{padding:64px 20px;}
+    .contact-box{padding:32px 24px;}
+  }
+
+  footer{border-top:1px solid var(--line); padding:48px 40px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;}
+  footer .foot-links{display:flex; gap:24px; font-family:var(--font-mono); font-size:12px;}
+  footer .foot-links a{color:var(--text-muted);}
+  footer .foot-links a:hover{color:var(--text);}
+  footer .copy{font-family:var(--font-mono); font-size:11px; color:var(--text-muted);}
+
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;} *{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-name">A. KUMAR</a>
+  <div class="nav-links">
+    <a href="projects.html">Projects</a>
+    <a href="#about">About</a>
+    <a href="mailto:adiyk7@uw.edu">Contact</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <canvas id="tgv-canvas" title="Taylor-Green vortex, exact solution"></canvas>
+  <div class="hero-content">
+    <div class="hero-eyebrow"><span class="dot"></span>CFD · HPC · Physics-Informed ML</div>
+    <h1 class="hero-title">Aditya Kumar</h1>
+    <div class="credentials">
+      <span>MS Aeronautics &amp; Astronautics · University of Washington</span>
+      <span>Research Assistant · Computational Fluid Mechanics Lab</span>
+    </div>
+    <p class="hero-sub">I work on flow solvers: making them run faster on GPUs, and making sure the numbers they produce hold up.</p>
+    <div class="hero-actions">
+      <a href="projects.html" class="btn btn-primary">View projects</a>
+      <a href="mailto:adiyk7@uw.edu" class="btn btn-ghost">adiyk7@uw.edu</a>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="section-label">About</div>
+  <h2 class="section-title">Hi, I'm Aditya.</h2>
+
+  <div class="about-grid">
+  <div class="headshot-wrap">
+    <img class="headshot" src="headshot.jpg" alt="Aditya Kumar">
+    <span class="headshot-cap">Skagit Valley, Washington</span>
+  </div>
+
+  <div class="bio">
+    <p>I'm a mechanical and aerospace engineer working where computational fluid dynamics, high-performance computing, and physics-informed machine learning overlap. Most of what I do comes down to two questions: can this simulation run faster, and is the number it produces one I can defend?</p>
+
+    <p>Right now I'm an MS student in Aeronautics &amp; Astronautics at the University of Washington and a research assistant in the <a href="https://www.aa.washington.edu/" target="_blank" rel="noopener">Computational Fluid Mechanics Lab</a>, where I work on the pressure-Poisson solver inside the lab's DNS code for droplet-laden turbulent flows: optimizing it on NVIDIA GPUs, then porting it to AMD hardware with HIP and hipFFT.</p>
+
+    <p>Before UW I led full-vehicle aerodynamics for Veloce Racing's Formula Student team, running 30+ scripted CFD configurations from SolidWorks geometry through wind-tunnel validation, and spent a research co-op at Kirloskar Pneumatic building thermodynamic models and surrogates for twin-screw compressors. Alongside that I build my own solvers, mostly to find out where they break.</p>
+
+    <p class="pull">The thread through all of it: don't trust a number until you've checked it against something you didn't write.</p>
+
+    <p>Besides work and research, I hike as much as the weather allows, mostly in the Cascades and Olympic National Park.</p>
+  </div>
+  </div>
+
+  <div class="domains">
+    <div class="domain-cell">
+      <div class="num">01</div>
+      <h3>Applied CFD</h3>
+      <p>Full-vehicle external aerodynamics in ANSYS Fluent and STAR-CCM+, wind-tunnel validated. Internal flow, marine hydrodynamics, DOE-scripted run matrices across 30+ configurations.</p>
+    </div>
+    <div class="domain-cell">
+      <div class="num">02</div>
+      <h3>HPC &amp; solver verification</h3>
+      <p>GPU kernel work on DNS solvers (CUDA, HIP, hipFFT) and a from-scratch Navier-Stokes solver built to be small enough to verify line by line: operator identities, manufactured solutions, published benchmark overlays.</p>
+    </div>
+    <div class="domain-cell">
+      <div class="num">03</div>
+      <h3>Physics-informed ML</h3>
+      <p>PINN surrogates for airfoil aerodynamics and Gaussian Process surrogates for thermal design spaces, trained against CFD and checked against cases they never saw.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Featured work</div>
+  <h2 class="section-title">Three projects, three audiences.</h2>
+
+  <div class="proj-grid">
+
+    <div class="proj-card">
+      <div class="proj-visual"><img class="proj-visual-img" src="solver2d-shear-layer.png" alt="Doubly periodic shear layer vorticity evolution, t = 0, 6, 10"></div>
+      <div>
+        <div class="proj-tags"><span class="tag">Julia</span><span class="tag">Solver Verification</span></div>
+        <h3>Solver_2D: a 2D incompressible Navier-Stokes solver, built and verified from scratch</h3>
+        <p class="desc">Primitive variables on a staggered MAC grid, RK3 fractional step (Le &amp; Moin 1991), FFT and CG pressure Poisson paths. Verified through a five-layer hierarchy: operator identities, manufactured-solution convergence studies, and a Ghia et al. 1982 benchmark overlay on the lid-driven cavity.</p>
+        <div class="result-row">
+          <div class="result-item"><span class="val">15/15</span><span class="lbl">tests passing, run locally</span></div>
+          <div class="result-item"><span class="val">2nd</span><span class="lbl">order MMS convergence, 4 grids</span></div>
+          <div class="result-item"><span class="val">Re 100</span><span class="lbl">cavity vs. Ghia et al. 1982</span></div>
+        </div>
+        <div class="proj-links"><a href="https://github.com/adiikumar/Solver_2D" target="_blank" rel="noopener">GitHub ↗</a><a href="projects.html#solver2d">Full writeup →</a></div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <div class="proj-visual proj-visual-static"><span class="proj-visual-label">GPU DNS Port</span></div>
+      <div>
+        <div class="proj-tags"><span class="tag">CUDA / HIP</span><span class="tag">Fortran</span><span class="tag">MPI</span></div>
+        <h3>Porting a DNS pressure-Poisson solver to AMD GPUs</h3>
+        <p class="desc">C/CUDA kernels with Fortran host wrappers and MPI on the Hyak cluster, focused on the lab's critical pressure-Poisson solve. Ported from NVIDIA CUDA to AMD GPUs via HIP and hipFFT, verified against Taylor-Green vortex regressions and the lab's random-right-hand-side operator test suite.</p>
+        <div class="result-row">
+          <div class="result-item"><span class="val">HIP + hipFFT</span><span class="lbl">CUDA → AMD GPU port</span></div>
+          <div class="result-item"><span class="val">TGV</span><span class="lbl">regression gate, every change</span></div>
+          <div class="result-item"><span class="val">ptest</span><span class="lbl">random-RHS operator identities</span></div>
+        </div>
+        <div class="proj-links"><a href="projects.html#cfmlab">Full writeup →</a></div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <div class="proj-visual"><img class="proj-visual-img" src="fsae-topdown.png" alt="Top-down velocity magnitude contour around the Formula Student full-vehicle CFD model"></div>
+      <div>
+        <div class="proj-tags"><span class="tag">ANSYS Fluent</span><span class="tag">PyFluent</span><span class="tag">DOE</span></div>
+        <h3>Formula Student aerodynamics, Veloce Racing</h3>
+        <p class="desc">Full-vehicle external aerodynamics across 30+ configurations, scripted end-to-end with PyFluent's Settings API and batch ParaView post-processing. Wind-tunnel validated, competing nationally and internationally.</p>
+        <div class="result-row">
+          <div class="result-item"><span class="val">5%</span><span class="lbl">drag reduction, DOE-driven</span></div>
+          <div class="result-item"><span class="val">30+</span><span class="lbl">scripted run matrix</span></div>
+          <div class="result-item"><span class="val">1st / 2nd</span><span class="lbl">national / global ranking</span></div>
+        </div>
+        <div class="proj-links"><a href="projects.html#fsae">Full writeup →</a></div>
+      </div>
+    </div>
+
+  </div>
+
+  <a class="see-all" href="projects.html">All six projects →</a>
+</section>
+
+<section>
+  <div class="contact-box">
+    <h2>Open to Fall 2026 internships.</h2>
+    <p>CFD, simulation software, HPC, and ML for simulation. Happy to talk about any of the work above, or send over a CV.</p>
+    <div class="contact-actions">
+      <a href="mailto:adiyk7@uw.edu" class="btn btn-primary">adiyk7@uw.edu</a>
+      <a href="https://www.linkedin.com/in/aditya-kumar-ajk2048" target="_blank" rel="noopener" class="btn btn-ghost">LinkedIn</a>
+      <a href="https://github.com/adiikumar" target="_blank" rel="noopener" class="btn btn-ghost">GitHub</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="copy">Aditya Kumar · MS Aeronautics &amp; Astronautics, University of Washington</div>
+  <div class="foot-links">
+    <a href="mailto:adiyk7@uw.edu">Email</a>
+    <a href="https://github.com/adiikumar" target="_blank" rel="noopener">GitHub</a>
+    <a href="projects.html">All projects</a>
+  </div>
+</footer>
+
+<script>
+/* ---------------------------------------------------------------
+   Exact Taylor-Green vortex:
+     u =  cos(x) sin(y) F(t)
+     v = -sin(x) cos(y) F(t)
+     omega = -2 cos(x) cos(y) F(t)
+     F(t) = exp(-2 nu t)
+   Field computed on a coarse grid each frame, upscaled with
+   smoothing; passive tracers advected through the exact velocity
+   field with RK2 and re-seeded when the decay cycle resets.
+--------------------------------------------------------------- */
+function initTGV(canvasEl, opts){
+  const ctx = canvasEl.getContext('2d');
+  const NX = opts.cols || 110, NY = opts.rows || 64;
+  const off = document.createElement('canvas');
+  off.width = NX; off.height = NY;
+  const octx = off.getContext('2d');
+  const imgData = octx.createImageData(NX, NY);
+  const TWO = Math.PI * 2;
+  const tracers = !!opts.tracers;
+  const nu = opts.nu || 0.05;
+  const cycle = opts.cycle || 26;
+  const speed = opts.speed || 1;
+
+  function resize(){
+    canvasEl.width = canvasEl.clientWidth * devicePixelRatio;
+    canvasEl.height = canvasEl.clientHeight * devicePixelRatio;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function hex2rgb(h){
+    h = h.replace('#','');
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  }
+  const BG = hex2rgb('#0a0e12');
+  const WARM = hex2rgb('#e8542a');
+  const COOL = hex2rgb('#2596a1');
+
+  let P = [];
+  const NP = opts.nParticles || 260;
+  function spawn(x,y,age){ P.push({x:x, y:y, a: age===undefined ? Math.random()*6 : age}); if(P.length>1000) P.splice(0,P.length-1000); }
+  function seedParticles(){ P=[]; for(let i=0;i<NP;i++) spawn(Math.random()*TWO, Math.random()*TWO); }
+  if(tracers) seedParticles();
+
+  function vel(x,y,F){ return [Math.cos(x)*Math.sin(y)*F, -Math.sin(x)*Math.cos(y)*F]; }
+
+  let T = Math.random()*cycle;
+  let last = performance.now();
+
+  function frame(now){
+    const dt = Math.min(0.05, (now-last)/1000) * speed;
+    last = now;
+    const t = T % cycle;
+    const F = Math.exp(-2*nu*t);
+    const fadeIn = Math.min(1, t/1.2);
+    const fadeOut = Math.min(1, (cycle - t)/1.2);
+    const fade = Math.min(fadeIn, fadeOut);
+
+    const d = imgData.data;
+    let idx = 0;
+    for(let j=0;j<NY;j++){
+      const y = (j/NY) * TWO;
+      const cy = Math.cos(y);
+      for(let i=0;i<NX;i++){
+        const x = (i/NX) * TWO;
+        const w = -2 * Math.cos(x) * cy * F * fade;
+        const a = Math.max(-1, Math.min(1, w));
+        const m = Math.pow(Math.abs(a), 0.75);
+        const c = a < 0 ? COOL : WARM;
+        d[idx++] = BG[0] + (c[0]-BG[0]) * m;
+        d[idx++] = BG[1] + (c[1]-BG[1]) * m;
+        d[idx++] = BG[2] + (c[2]-BG[2]) * m;
+        d[idx++] = 255;
+      }
+    }
+    octx.putImageData(imgData, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.clearRect(0,0,canvasEl.width, canvasEl.height);
+    ctx.drawImage(off, 0, 0, canvasEl.width, canvasEl.height);
+
+    if(tracers){
+      const sx = canvasEl.width / TWO, sy = canvasEl.height / TWO;
+      const adt = 0.9 * dt * 3;
+      for(let p=0;p<P.length;p++){
+        const q = P[p]; q.a += dt;
+        const v1 = vel(q.x, q.y, F);
+        const mx = q.x + 0.5*adt*v1[0], my = q.y + 0.5*adt*v1[1];
+        const v2 = vel(mx, my, F);
+        q.x += adt*v2[0]; q.y += adt*v2[1];
+        if(q.x<0) q.x+=TWO; if(q.x>TWO) q.x-=TWO;
+        if(q.y<0) q.y+=TWO; if(q.y>TWO) q.y-=TWO;
+        const al = Math.min(1, q.a*1.5) * fade * 0.85;
+        ctx.fillStyle = 'rgba(234,230,218,' + al.toFixed(3) + ')';
+        ctx.fillRect(q.x*sx, q.y*sy, 2.4, 2.4);
+      }
+    }
+
+    T += dt;
+    if(t + dt >= cycle){ if(tracers) seedParticles(); }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+const heroCanvas = document.getElementById('tgv-canvas');
+initTGV(heroCanvas, {cols:130, rows:76, tracers:true, nParticles:320, nu:0.045, cycle:28});
+</script>
+
+</body>
+</html>
