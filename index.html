@@ -361,7 +361,22 @@ function initTGV(canvasEl, opts){
   var imgData = null, W = 0, H = 0, P = [];
 
   function hex2rgb(h){ h = h.replace('#',''); return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
+  function luma(c){ return 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2]; }
   var BG = hex2rgb('#0a0e12'), WARM = hex2rgb('#e8542a'), COOL = hex2rgb('#2596a1');
+  var NEAR_WHITE = [247, 244, 235];
+  // Orange-red and teal are not equally bright to the eye even at full
+  // strength (teal reads noticeably brighter, since human vision weights
+  // green and blue far more than red when judging brightness). Blending
+  // both hues toward black or white by the SAME mix fraction leaves warm
+  // tracers looking dimmer at every tier. Teal stays the reference; warm's
+  // mix fraction is solved so it lands on the exact same perceived
+  // brightness, not just the same blend amount.
+  var L_BG = luma(BG), L_WARM = luma(WARM), L_COOL = luma(COOL), L_HI = luma(NEAR_WHITE);
+  function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function matchedWarmMix(fromLuma, toLuma, mixCool, coolFromLuma, coolToLuma){
+    var targetLuma = coolFromLuma + mixCool * (coolToLuma - coolFromLuma);
+    return clamp01((targetLuma - fromLuma) / (toLuma - fromLuma));
+  }
 
   function seed(){
     P = [];
@@ -460,7 +475,6 @@ function initTGV(canvasEl, opts){
       // so a slow tracer still recedes toward the background at rest.
       var maxSpeed = 0.5 * F + 1e-6;
       var levels = [0.125, 0.375, 0.625, 0.875];
-      var NEAR_WHITE = [247, 244, 235];
       // Two palettes per bucket: a dim, colored GLOW (soft halo, sets the
       // mood, matches the complementary hue) and a small bright CORE (the
       // thing the eye actually locks onto). Turning shadowBlur up alone
@@ -470,16 +484,19 @@ function initTGV(canvasEl, opts){
       var glowPalette = new Array(8), corePalette = new Array(8);
       for(var s = 0; s < 2; s++){
         var base = s ? WARM : COOL;
+        var baseLuma = s ? L_WARM : L_COOL;
         for(var k = 0; k < 4; k++){
           var te = Math.pow(levels[k], 0.6);
-          var gMix = 0.28 + 0.7 * te;
+          var gMixCool = 0.28 + 0.7 * te;
+          var gMix = s ? matchedWarmMix(L_BG, L_WARM, gMixCool, L_BG, L_COOL) : gMixCool;
           var gr = (BG[0] + (base[0]-BG[0]) * gMix) | 0;
           var gg = (BG[1] + (base[1]-BG[1]) * gMix) | 0;
           var gb = (BG[2] + (base[2]-BG[2]) * gMix) | 0;
           var gal = globalAlpha * (0.5 + 0.4 * te);
           glowPalette[s*4 + k] = 'rgba(' + gr + ',' + gg + ',' + gb + ',' + gal.toFixed(3) + ')';
 
-          var cMix = 0.5 + 0.45 * te;
+          var cMixCool = 0.3 + 0.32 * te;
+          var cMix = s ? matchedWarmMix(L_WARM, L_HI, cMixCool, L_COOL, L_HI) : cMixCool;
           var cr = (base[0] + (NEAR_WHITE[0]-base[0]) * cMix) | 0;
           var cg = (base[1] + (NEAR_WHITE[1]-base[1]) * cMix) | 0;
           var cb = (base[2] + (NEAR_WHITE[2]-base[2]) * cMix) | 0;
