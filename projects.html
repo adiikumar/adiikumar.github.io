@@ -124,7 +124,7 @@
 <header class="page-head">
   <div class="section-label">Projects</div>
   <h1>Six projects across CFD, HPC, and surrogate modelling.</h1>
-  <p class="page-sub">Solver development and GPU porting, conjugate heat transfer, free-surface marine hydrodynamics, vehicle aerodynamics, and compressor modelling. Every figure below comes from a run I did myself.</p>
+  <p class="page-sub">Solver development and GPU porting, conjugate heat transfer, free-surface marine hydrodynamics, vehicle aerodynamics, and compressor modelling.</p>
 </header>
 
 <div class="filters">
@@ -162,8 +162,6 @@
         <div class="result-item"><span class="val">2nd order</span><span class="lbl">MMS convergence, 4 grids</span></div>
         <div class="result-item"><span class="val">Re 100 / 400</span><span class="lbl">cavity vs. Ghia et al. 1982</span></div>
       </div>
-
-      <div class="callout"><strong>The diagnostic that lied.</strong> A hand-rolled divergence check in the shear-layer script used backward differences against the solver's forward-difference convention, and confidently flagged a correct solution as divergent. The suite stayed green the whole time, because the diagnostic sat outside the tested operators. Standing rule since: diagnostics are code, reviewed like code, and must call the solver's own tested operators.</div>
 
       <div class="proj-figure">
         <img src="solver2d-ghia.png" alt="Centerline velocity profiles from this solver overlaid on Ghia et al. 1982 data, lid-driven cavity at Re 100">
@@ -293,7 +291,7 @@
       <div class="proj-tags"><span class="tag">CUDA / HIP</span><span class="tag">Fortran</span><span class="tag">MPI</span></div>
       <h2 class="proj-title">GPU-accelerated DNS: pressure-Poisson solver port</h2>
       <span class="proj-context">Research Assistant · Computational Fluid Mechanics Lab, UW · 2025 – present</span>
-      <p class="desc">The lab's flagship DNS solver for droplet-laden turbulent flows runs C/CUDA kernels behind Fortran host wrappers with MPI on the Hyak cluster. My work targets its pressure-Poisson solve, the most expensive step in the timeloop: first optimizing it on NVIDIA hardware, then porting that implementation to AMD GPUs using HIP and hipFFT. A port like this is deceptively risky, because the code will happily run and produce a field that looks correct while being subtly wrong, so nothing counts until it passes the same gates the original did.</p>
+      <p class="desc">The lab's DNS solver for droplet-laden turbulent flows runs C/CUDA kernels behind Fortran host wrappers with MPI on the Hyak cluster. My work targets its pressure-Poisson solve, the most expensive step in the timeloop: first optimizing it on NVIDIA hardware, then porting that implementation to AMD GPUs using HIP and hipFFT.</p>
 
       <table class="spec-table">
         <tr><td>Codebase</td><td>C/CUDA kernels, Fortran host wrappers, MPI, on the UW Hyak cluster</td></tr>
@@ -302,9 +300,7 @@
         <tr><td>Verification</td><td>Taylor-Green vortex regressions gate every change, alongside the lab's ptest operator suite</td></tr>
       </table>
 
-      <div class="callout"><strong>Why random right-hand sides.</strong> The lab's ptest framework drives the operators with random inputs rather than smooth analytic fields, and checks identities that must hold for any input at all. Smooth test cases are forgiving: they can hide index transpositions, mishandled boundary rows and sign errors that a random field exposes immediately.</div>
 
-      <div class="proj-links"><span class="soon">APS-DFD 2026 abstract in preparation</span><span class="soon">Research code, not public</span></div>
     </div>
   </article>
 
@@ -349,7 +345,7 @@ document.querySelectorAll('.chip').forEach(function(chip){
 function initTGV(canvasEl, opts){
   opts = opts || {};
   if(!canvasEl) return;
-  var ctx = canvasEl.getContext('2d', {alpha:false});
+  var ctx = canvasEl.getContext('2d');
   var off = document.createElement('canvas');
   var octx = off.getContext('2d');
   var TWO = Math.PI * 2;
@@ -418,8 +414,11 @@ function initTGV(canvasEl, opts){
     var dt = reduce ? 0 : Math.min(0.05, (now - last) / 1000);
     last = now;
     var t = T % cycle;
-    var F = Math.exp(-2 * nu * t);
-    var fade = Math.min(Math.min(1, t/1.5), Math.min(1, (cycle - t)/1.5));
+    // Floor F so the field never decays toward black: real Taylor-Green
+    // decay (exp(-2 nu t)) is too aggressive over a multi-second cycle for
+    // a background element that always needs to read clearly.
+    var F = Math.max(0.4, Math.exp(-2 * nu * t));
+    var fade = Math.min(Math.min(1, t/1.2), Math.min(1, (cycle - t)/1.2));
 
     var d = imgData.data, idx = 0;
     for(var j = 0; j < NY; j++){
@@ -428,7 +427,7 @@ function initTGV(canvasEl, opts){
         var x = (i/NX) * spanX;
         var w = -2 * Math.cos(x) * cy * F * fade;
         var a = Math.max(-1, Math.min(1, w));
-        var m = Math.pow(Math.abs(a), 0.75);
+        var m = Math.max(0.12, Math.pow(Math.abs(a), 0.7));
         var c = a < 0 ? COOL : WARM;
         d[idx++] = BG[0] + (c[0]-BG[0]) * m;
         d[idx++] = BG[1] + (c[1]-BG[1]) * m;
@@ -445,12 +444,15 @@ function initTGV(canvasEl, opts){
       var sx = canvasEl.width / spanX, sy = canvasEl.height / spanY;
       var adt = 2.7 * dt;
       var dprT = Math.min(window.devicePixelRatio || 1, 2);
-      // short round-capped streaks: they read as flow direction, and a
-      // near-stationary tracer still renders as a round dot
+      var alpha = Math.max(0.55, fade) * 0.95;
+      // short round-capped streaks with a soft glow: legible against the
+      // field at any point in the cycle, not just at peak brightness
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.lineWidth = (opts.tracerSize || 3.6) * dprT;
-      ctx.strokeStyle = 'rgba(240,237,229,' + (fade * 0.92).toFixed(3) + ')';
+      ctx.lineWidth = (opts.tracerSize || 5.2) * dprT;
+      ctx.strokeStyle = 'rgba(247,245,238,' + alpha.toFixed(3) + ')';
+      ctx.shadowColor = 'rgba(247,245,238,0.9)';
+      ctx.shadowBlur = 6 * dprT;
       ctx.beginPath();
       for(var p = 0; p < P.length; p++){
         var q = P[p];
@@ -473,6 +475,7 @@ function initTGV(canvasEl, opts){
         }
       }
       ctx.stroke();
+      ctx.shadowBlur = 0;
     }
 
     T += dt;
