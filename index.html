@@ -490,7 +490,7 @@ initTGV(document.getElementById('tgv-bg'), {tracers:true, cellPx:430, nu:0.045, 
    block does nothing at all.
 --------------------------------------------------------------- */
 (function(){
-  var ENDPOINT = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+  var ENDPOINT = 'https://script.google.com/macros/s/AKfycbw_XJ4a2VIwXJnof3FRYQZOsEUi9LuZlAporbJTdKjRQQRe2W5of4PldVOiXS3QZnyy/exec';
   if(ENDPOINT.indexOf('script.google.com') === -1) return;      // not configured yet
   var host = location.hostname;
   if(host === 'localhost' || host === '127.0.0.1' || host === '') return;  // skip local previews
