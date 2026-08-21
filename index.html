@@ -163,7 +163,8 @@
   <div class="nav-links">
     <a href="projects.html">Projects</a>
     <a href="#about">About</a>
-    <a href="mailto:adiyk7@uw.edu">Contact</a>
+    <a href="Aditya_Kumar.pdf">CV</a>
+    <a href="mailto:adityk7@uw.edu">Contact</a>
   </div>
 </nav>
 
@@ -180,7 +181,7 @@
     <p class="hero-sub">I work on flow solvers: making them run faster on GPUs, and making sure the numbers they produce hold up.</p>
     <div class="hero-actions">
       <a href="projects.html" class="btn btn-primary">View projects</a>
-      <a href="mailto:adiyk7@uw.edu" class="btn btn-ghost">adiyk7@uw.edu</a>
+      <a href="mailto:adityk7@uw.edu" class="btn btn-ghost">adityk7@uw.edu</a>
     </div>
   </div>
 </section>
@@ -310,11 +311,12 @@
 <section>
   <div class="contact-box">
     <h2>Open to Spring 2027 internships and full-time roles.</h2>
-    <p>CFD, simulation software, HPC, and ML for simulation. Happy to talk about any of the work above, or send over a CV.</p>
+    <p>CFD, simulation software, HPC, and ML for simulation. Happy to talk about any of the work above.</p>
     <div class="contact-actions">
-      <a href="mailto:adiyk7@uw.edu" class="btn btn-primary">adiyk7@uw.edu</a>
+      <a href="mailto:adityk7@uw.edu" class="btn btn-primary">adityk7@uw.edu</a>
       <a href="https://www.linkedin.com/in/aditya-kumar-ajk2048" target="_blank" rel="noopener" class="btn btn-ghost">LinkedIn</a>
       <a href="https://github.com/adiikumar" target="_blank" rel="noopener" class="btn btn-ghost">GitHub</a>
+      <a href="Aditya_Kumar.pdf" class="btn btn-ghost">Download CV</a>
     </div>
   </div>
 </section>
@@ -324,7 +326,7 @@
 <footer>
   <div class="copy">Aditya Kumar · MS Aeronautics &amp; Astronautics, University of Washington</div>
   <div class="foot-links">
-    <a href="mailto:adiyk7@uw.edu">Email</a>
+    <a href="mailto:adityk7@uw.edu">Email</a>
     <a href="https://github.com/adiikumar" target="_blank" rel="noopener">GitHub</a>
     <a href="projects.html">All projects</a>
   </div>
@@ -477,6 +479,71 @@ function initTGV(canvasEl, opts){
 }
 
 initTGV(document.getElementById('tgv-bg'), {tracers:true, cellPx:430, nu:0.045, cycle:28});
+</script>
+
+
+<script>
+/* ---------------------------------------------------------------
+   Visit ping. Sends one small JSON payload per browser session to a
+   Google Apps Script endpoint, which emails an alert and logs a row.
+   Paste your deployment URL into ENDPOINT below; until you do, this
+   block does nothing at all.
+--------------------------------------------------------------- */
+(function(){
+  var ENDPOINT = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+  if(ENDPOINT.indexOf('script.google.com') === -1) return;      // not configured yet
+  var host = location.hostname;
+  if(host === 'localhost' || host === '127.0.0.1' || host === '') return;  // skip local previews
+  if(/bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit/i.test(navigator.userAgent)) return;
+  try{ if(sessionStorage.getItem('vping')) return; sessionStorage.setItem('vping','1'); }catch(e){}
+
+  function send(geo){
+    geo = geo || {};
+    var payload = {
+      page: location.pathname + location.search,
+      referrer: document.referrer || 'direct',
+      city: geo.city || '?',
+      region: geo.region || '',
+      country: geo.country_name || '?',
+      org: geo.org || '',
+      screen: screen.width + 'x' + screen.height,
+      ua: navigator.userAgent,
+      time: new Date().toISOString()
+    };
+    try{
+      fetch(ENDPOINT, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type': 'text/plain;charset=utf-8'},
+        body: JSON.stringify(payload)
+      });
+    }catch(e){}
+  }
+
+  // Free IP geolocation for the "from where" part. If it is blocked or
+  // rate-limited, the ping still goes out without location fields.
+  var done = false;
+  var t = setTimeout(function(){ if(!done){ done = true; send(null); } }, 2500);
+  fetch('https://ipapi.co/json/')
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(g){ if(!done){ done = true; clearTimeout(t); send(g); } })
+    .catch(function(){ if(!done){ done = true; clearTimeout(t); send(null); } });
+})();
+</script>
+
+
+<script>
+/* Cloudflare Web Analytics. Paste your site token below; until you do,
+   nothing loads. Dashboard: dash.cloudflare.com > Web Analytics. */
+(function(){
+  var CF_TOKEN = 'PASTE_YOUR_CLOUDFLARE_TOKEN_HERE';
+  if(CF_TOKEN.indexOf('PASTE_') === 0) return;
+  var s = document.createElement('script');
+  s.defer = true;
+  s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+  s.setAttribute('data-cf-beacon', JSON.stringify({token: CF_TOKEN}));
+  document.head.appendChild(s);
+})();
 </script>
 
 </body>
