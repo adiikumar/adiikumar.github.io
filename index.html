@@ -362,7 +362,6 @@ function initTGV(canvasEl, opts){
 
   function hex2rgb(h){ h = h.replace('#',''); return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
   var BG = hex2rgb('#0a0e12'), WARM = hex2rgb('#e8542a'), COOL = hex2rgb('#2596a1');
-  var AMBER = hex2rgb('#d9a441'), HILITE = hex2rgb('#f5e6c8');
 
   function seed(){
     P = [];
@@ -374,7 +373,7 @@ function initTGV(canvasEl, opts){
   // 8 reusable bucket arrays: [sign 0=cool/1=warm] x [speed quartile 0..3].
   // Tracers are grouped into these each frame so same-color segments share
   // one stroke() call instead of paying a state change per particle.
-  var buckets = [[],[],[],[]];
+  var buckets = [[],[],[],[],[],[],[],[]];
   var SPEED = opts.speed || 1.175;
 
   function layout(){
@@ -448,39 +447,33 @@ function initTGV(canvasEl, opts){
 
     if(useTracers && P.length){
       var sx = canvasEl.width / spanX, sy = canvasEl.height / spanY;
-      var adt = 2.7 * dt;
+      var adt = 1.6 * dt;
       var dprT = Math.min(window.devicePixelRatio || 1, 2);
       var globalAlpha = Math.max(0.55, fade);
 
-      // Tracer color depends only on local flow speed, never on local
-      // vorticity sign. The background is already a red/teal checkerboard
-      // by sign, so a tracer colored the same way by sign camouflages
-      // against whichever tile it happens to sit on. A single warm amber
-      // ramp (unused elsewhere in the field) stays visible against both
-      // the red and the teal regions; only its brightness rises with speed,
-      // fading to near-black when slow so it still recedes at rest.
+      // Each tracer takes the OPPOSITE color of the tile it is currently
+      // sitting on: a teal dot over a red region, a red dot over a teal
+      // one. Coloring it the SAME as the tile (the original bug) makes it
+      // vanish into that tile; the swap guarantees contrast everywhere,
+      // since a tracer is never the same hue as what is directly under it.
+      // Speed still controls how far that color pulls away from near-black,
+      // so a slow tracer still recedes toward the background at rest.
       var maxSpeed = 0.5 * F + 1e-6;
       var levels = [0.125, 0.375, 0.625, 0.875];
-      var palette = new Array(4);
-      for(var k = 0; k < 4; k++){
-        var te = Math.pow(levels[k], 0.6);
-        var r, g, b;
-        if(te <= 0.55){
-          var t0 = te / 0.55;
-          var mix = 0.3 + 0.7 * t0;
-          r = (BG[0] + (AMBER[0]-BG[0]) * mix) | 0;
-          g = (BG[1] + (AMBER[1]-BG[1]) * mix) | 0;
-          b = (BG[2] + (AMBER[2]-BG[2]) * mix) | 0;
-        } else {
-          var t1 = (te - 0.55) / 0.45;
-          r = (AMBER[0] + (HILITE[0]-AMBER[0]) * t1) | 0;
-          g = (AMBER[1] + (HILITE[1]-AMBER[1]) * t1) | 0;
-          b = (AMBER[2] + (HILITE[2]-AMBER[2]) * t1) | 0;
+      var palette = new Array(8);
+      for(var s = 0; s < 2; s++){
+        var base = s ? WARM : COOL;
+        for(var k = 0; k < 4; k++){
+          var te = Math.pow(levels[k], 0.6);
+          var mix = 0.28 + 0.7 * te;
+          var r = (BG[0] + (base[0]-BG[0]) * mix) | 0;
+          var g = (BG[1] + (base[1]-BG[1]) * mix) | 0;
+          var b = (BG[2] + (base[2]-BG[2]) * mix) | 0;
+          var al = globalAlpha * (0.55 + 0.45 * te);
+          palette[s*4 + k] = 'rgba(' + r + ',' + g + ',' + b + ',' + al.toFixed(3) + ')';
         }
-        var al = globalAlpha * (0.55 + 0.45 * te);
-        palette[k] = 'rgba(' + r + ',' + g + ',' + b + ',' + al.toFixed(3) + ')';
       }
-      for(var bi = 0; bi < 4; bi++) buckets[bi].length = 0;
+      for(var bi = 0; bi < 8; bi++) buckets[bi].length = 0;
 
       for(var p = 0; p < P.length; p++){
         var q = P[p];
@@ -495,23 +488,27 @@ function initTGV(canvasEl, opts){
         else if(q.y > spanY){ q.y -= spanY; wrapped = true; }
         q.wrapped = wrapped;
 
+        // Same sign test the field itself uses to pick WARM vs COOL for
+        // this exact (x,y), then invert it for the tracer's own color.
+        var tileIsWarm = (Math.cos(q.x) * Math.cos(q.y)) <= 0;
+        var s2 = tileIsWarm ? 0 : 1;   // 0 -> tracer uses COOL, 1 -> tracer uses WARM
         var spd = Math.sqrt(v2[0]*v2[0] + v2[1]*v2[1]);
         var speedIdx = Math.min(3, (Math.min(1, spd / maxSpeed) * 4) | 0);
-        buckets[speedIdx].push(q);
+        buckets[s2*4 + speedIdx].push(q);
       }
 
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.lineWidth = (opts.tracerSize || 6.4) * dprT;
-      for(var bi2 = 0; bi2 < 4; bi2++){
+      ctx.lineWidth = (opts.tracerSize || 3.6) * dprT;
+      for(var bi2 = 0; bi2 < 8; bi2++){
         var bucket = buckets[bi2];
         if(!bucket.length) continue;
         ctx.strokeStyle = palette[bi2];
-        // Glow matches the tracer's own hue rather than a flat white halo,
-        // so it reads as a brighter version of the same color, not a
-        // separate white dot sitting on top of it.
+        // Glow matches the tracer's own (now-inverted) hue rather than a
+        // flat white halo, kept tight so it reads as a bright fleck, not
+        // a soft blob.
         ctx.shadowColor = palette[bi2];
-        ctx.shadowBlur = (opts.tracerGlow || 7) * dprT;
+        ctx.shadowBlur = (opts.tracerGlow || 13) * dprT;
         ctx.beginPath();
         for(var qi = 0; qi < bucket.length; qi++){
           var qq = bucket[qi];
