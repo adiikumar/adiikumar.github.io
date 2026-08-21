@@ -10,6 +10,7 @@
 <style>
   :root{
     --ink:#0a0e12; --ink-2:#0f151a; --surface:#131a20; --line:#212a31;
+    --panel:rgba(15,21,26,0.86);
     --text:#eae6da; --text-muted:#8b9199;
     --vort-pos:#e8542a; --vort-neg:#2596a1; --amber:#d9a441;
     --font-display:'Fraunces','Georgia',serif;
@@ -18,16 +19,19 @@
     --radius:3px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
   body{background:var(--ink); color:var(--text); font-family:var(--font-body); line-height:1.6; -webkit-font-smoothing:antialiased;}
-  #tgv-bg{position:fixed; inset:0; width:100vw; height:100vh; z-index:0;}
-  #tgv-bg-scrim{position:fixed; inset:0; z-index:0; background:linear-gradient(180deg, rgba(10,14,18,0.55) 0%, rgba(10,14,18,0.86) 22%, rgba(10,14,18,0.94) 100%);}
-  nav, header.page-head, .filters, main, footer{position:relative; z-index:1;}
   a{color:inherit; text-decoration:none;}
   ::selection{background:var(--vort-pos); color:var(--ink);}
 
+  /* ---------- persistent flow background ---------- */
+  #tgv-bg{position:fixed; inset:0; width:100vw; height:100vh; z-index:0; display:block;}
+  #tgv-scrim{position:fixed; inset:0; z-index:1; background:rgba(10,14,18,0.62); pointer-events:none;}
+  header.page-head, .filters, main, footer{position:relative; z-index:2;}
+
   nav{
     position:sticky; top:0; z-index:50; display:flex; justify-content:space-between; align-items:center;
-    padding:20px 40px; background:rgba(10,14,18,0.88); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+    padding:20px 40px; background:rgba(10,14,18,0.82); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
   }
   .nav-name{font-family:var(--font-mono); font-size:13px;}
   .nav-links{display:flex; gap:28px; font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:0.03em;}
@@ -35,34 +39,35 @@
 
   header.page-head{padding:80px 40px 48px; max-width:1180px; margin:0 auto;}
   .section-label{font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--vort-neg); margin-bottom:14px;}
-  h1{font-family:var(--font-display); font-weight:500; font-size:clamp(2rem,4.5vw,3.1rem); max-width:16ch;}
-  .page-sub{margin-top:16px; color:var(--text-muted); max-width:60ch; font-size:1.02rem;}
+  h1{font-family:var(--font-display); font-weight:500; font-size:clamp(2rem,4.5vw,3.1rem); max-width:18ch;}
+  .page-sub{margin-top:16px; color:var(--text-muted); max-width:62ch; font-size:1.02rem;}
 
   /* filter chips */
   .filters{display:flex; gap:10px; flex-wrap:wrap; padding:0 40px 40px; max-width:1180px; margin:0 auto;}
   .chip{
     font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:0.03em;
     padding:8px 16px; border:1px solid var(--line); border-radius:20px; color:var(--text-muted); cursor:pointer; transition:all .2s;
-    background:none;
+    background:rgba(10,14,18,0.5);
   }
-  .chip.active, .chip:hover{border-color:var(--vort-pos); color:var(--text); background:rgba(232,84,42,0.08);}
+  .chip.active, .chip:hover{border-color:var(--vort-pos); color:var(--text); background:rgba(232,84,42,0.12);}
 
-  main{max-width:1180px; margin:0 auto; padding:0 40px 100px; display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line);}
+  main{max-width:1180px; margin:0 auto; padding:0 40px 100px;}
+  .proj-list{display:flex; flex-direction:column; border:1px solid var(--line);}
 
   .proj{
-    background:var(--ink-2); padding:48px; display:grid; grid-template-columns:1fr 1.7fr; gap:44px; align-items:start; scroll-margin-top:90px;
+    background:var(--panel); backdrop-filter:blur(7px);
+    padding:48px; display:grid; grid-template-columns:1fr 1.7fr; gap:44px; align-items:start;
+    scroll-margin-top:90px; border-bottom:1px solid var(--line);
   }
-  .proj-visual{aspect-ratio:4/3; border-radius:var(--radius); border:1px solid var(--line); overflow:hidden; background:linear-gradient(135deg,var(--surface),var(--ink)); position:relative;}
-  .proj-visual-static{display:flex; align-items:center; justify-content:center;}
-  .proj-visual-label{
-    font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;
-    color:var(--text-muted); border:1px solid var(--line); padding:6px 12px; border-radius:20px;
-  }
+  .proj:last-child{border-bottom:none;}
+  .proj.no-viz{grid-template-columns:1fr;}
+  .proj.no-viz .proj-body{max-width:80ch;}
+  .proj-visual{aspect-ratio:4/3; border-radius:var(--radius); border:1px solid var(--line); overflow:hidden; background:rgba(19,26,32,0.7); position:relative;}
   .proj-visual-img{width:100%; height:100%; object-fit:cover; display:block;}
-  .proj-visual.is-video{aspect-ratio:16/9; background:var(--ink);}
+  .proj-visual.is-video{aspect-ratio:16/9; background:rgba(10,14,18,0.9);}
   .proj-visual-video{width:100%; height:100%; object-fit:contain; display:block;}
   .visual-cap{display:block; font-family:var(--font-mono); font-size:11px; color:var(--text-muted); margin-top:10px; line-height:1.5;}
-  .proj-figure{margin-bottom:20px; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--surface);}
+  .proj-figure{margin-bottom:20px; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:rgba(19,26,32,0.6);}
   .proj-figure img{width:100%; display:block;}
   .proj-figure-cap{display:block; font-family:var(--font-mono); font-size:11px; color:var(--text-muted); padding:10px 14px; border-top:1px solid var(--line);}
   .proj-tags{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
@@ -80,30 +85,31 @@
   .result-item .val{font-size:1.25rem; color:var(--vort-pos); display:block;}
   .result-item .lbl{font-size:10.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.03em;}
   .callout{
-    border-left:2px solid var(--amber); padding:12px 18px; margin-bottom:18px; font-size:0.9rem; color:var(--text-muted); background:rgba(217,164,65,0.05);
+    border-left:2px solid var(--amber); padding:12px 18px; margin-bottom:18px; font-size:0.9rem; color:var(--text-muted); background:rgba(217,164,65,0.06);
   }
   .callout strong{color:var(--text); font-weight:600;}
-  .proj-links{display:flex; gap:16px;}
+  .proj-links{display:flex; gap:16px; flex-wrap:wrap; align-items:center;}
   .proj-links a{font-family:var(--font-mono); font-size:12px; color:var(--vort-neg); border-bottom:1px solid transparent;}
   .proj-links a:hover{border-bottom-color:var(--vort-neg);}
+  .proj-links .soon{font-family:var(--font-mono); font-size:12px; color:var(--text-muted);}
 
   @media (max-width:820px){
     .proj{grid-template-columns:1fr; padding:32px 24px;}
     nav{padding:16px 20px;} header.page-head{padding:60px 20px 32px;} .filters{padding:0 20px 32px;} main{padding:0 20px 60px;}
   }
 
-  footer{border-top:1px solid var(--line); padding:48px 40px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px;}
+  footer{border-top:1px solid var(--line); padding:48px 40px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px; background:rgba(10,14,18,0.7);}
   footer .foot-links{display:flex; gap:24px; font-family:var(--font-mono); font-size:12px;}
   footer .foot-links a{color:var(--text-muted);} footer .foot-links a:hover{color:var(--text);}
   footer .copy{font-family:var(--font-mono); font-size:11px; color:var(--text-muted);}
 
-  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;} *{transition:none !important;}}
 </style>
 </head>
 <body>
 
-<canvas id="tgv-bg"></canvas>
-<div id="tgv-bg-scrim"></div>
+<canvas id="tgv-bg" aria-hidden="true"></canvas>
+<div id="tgv-scrim" aria-hidden="true"></div>
 
 <nav>
   <a href="index.html" class="nav-name">A. KUMAR</a>
@@ -116,38 +122,38 @@
 
 <header class="page-head">
   <div class="section-label">Projects</div>
-  <h1>CFD, HPC, and physics-informed ML: six projects, three domains.</h1>
-  <p class="page-sub">External aerodynamics, internal flow, marine hydrodynamics, PINN and Gaussian Process surrogates, and a from-scratch solver built to study numerical verification, agentic AI included. Every figure below comes from an actual run, not a reconstruction.</p>
+  <h1>Six projects across CFD, HPC, and surrogate modelling.</h1>
+  <p class="page-sub">Solver development and GPU porting, conjugate heat transfer, free-surface marine hydrodynamics, vehicle aerodynamics, and compressor modelling. Every figure below comes from a run I did myself.</p>
 </header>
 
 <div class="filters">
   <button class="chip active" data-filter="all">All</button>
   <button class="chip" data-filter="cfd">CFD</button>
-  <button class="chip" data-filter="agentic">Agentic AI</button>
   <button class="chip" data-filter="hpc">HPC</button>
   <button class="chip" data-filter="ml">ML + Surrogate</button>
   <button class="chip" data-filter="thermal">Thermal</button>
 </div>
 
 <main>
+  <div class="proj-list">
 
-  <article class="proj" id="solver2d" data-cat="agentic cfd hpc">
+  <article class="proj" id="solver2d" data-cat="cfd hpc">
     <div>
-      <div class="proj-visual"><img class="proj-visual-img" src="solver2d-shear-layer.png" alt="Doubly periodic shear layer vorticity evolution, t = 0, 6, 10"></div>
+      <div class="proj-visual"><img class="proj-visual-img" src="solver2d-shear-layer.png" alt="Doubly periodic shear layer vorticity evolution at t = 0, 6 and 10"></div>
       <span class="visual-cap">Doubly periodic shear layer, vorticity at t = 0, 6, 10</span>
     </div>
-    <div>
-      <div class="proj-tags"><span class="tag">Julia</span><span class="tag">Agentic AI</span><span class="tag">Verification</span></div>
-      <h2 class="proj-title">Solver_2D: a Navier-Stokes solver built with an AI agent</h2>
-      <span class="proj-context">Personal project, May 2026 – present · github.com/adiikumar/Solver_2D</span>
-      <p class="desc">A 2D incompressible Navier-Stokes solver on a staggered MAC grid, built explicitly to study whether a coding agent can be trusted with numerics. CFD is near worst-case for this: a sign error compiles, runs, and draws a plausible contour. Correctness is long-range consistency across files, not local syntax. The codebase is small enough that "I reviewed every line" is literally true.</p>
+    <div class="proj-body">
+      <div class="proj-tags"><span class="tag">Julia</span><span class="tag">Numerical methods</span><span class="tag">Verification</span></div>
+      <h2 class="proj-title">Solver_2D: a verified incompressible Navier-Stokes solver</h2>
+      <span class="proj-context">Personal project · May 2026 – present · github.com/adiikumar/Solver_2D</span>
+      <p class="desc">A 2D incompressible Navier-Stokes solver on a staggered MAC grid, written from scratch. CFD is an unforgiving place to write code: a sign error still compiles, still runs, and still draws a plausible contour, because correctness lives in long-range consistency across files rather than in local syntax. I kept the codebase small enough that reviewing every line was literally possible, and built the solver with an AI agent under a spec, review and run gate to see where that workflow holds and where it needs checking.</p>
 
       <table class="spec-table">
         <tr><td>Formulation</td><td>Primitive variables, staggered MAC grid, RK3 fractional step (Le &amp; Moin, JCP 1991)</td></tr>
         <tr><td>Pressure Poisson</td><td>FFT with modified wavenumbers (periodic) · unpreconditioned CG (wall-bounded)</td></tr>
-        <tr><td>Discrete structure</td><td>Gradient built as minus the divergence transpose → projection removes divergence exactly</td></tr>
-        <tr><td>Simplification</td><td>Projection applied at every RK3 substage (a documented simplification, not a silent one)</td></tr>
-        <tr><td>Workflow</td><td>Spec → generate → review → run, human-gated. No MCP or autonomous execution: Claude (Anthropic) as conversational pair programmer</td></tr>
+        <tr><td>Discrete structure</td><td>Gradient built as minus the divergence transpose, so projection removes divergence exactly</td></tr>
+        <tr><td>Simplification</td><td>Projection applied at every RK3 substage, documented rather than silent</td></tr>
+        <tr><td>Workflow</td><td>Spec, generate, review, run. Human-gated throughout, with no autonomous execution</td></tr>
       </table>
 
       <div class="result-row">
@@ -156,10 +162,10 @@
         <div class="result-item"><span class="val">Re 100 / 400</span><span class="lbl">cavity vs. Ghia et al. 1982</span></div>
       </div>
 
-      <div class="callout"><strong>Caught wrong, on purpose:</strong> a hand-rolled divergence diagnostic used backward differences against the solver's forward-difference convention. It confidently flagged a correct solution as divergent. The test suite stayed green because the diagnostic sat outside the tested operator suite. Standing rule since: diagnostics are code, reviewed like code, and must call the solver's own tested operators.</div>
+      <div class="callout"><strong>The diagnostic that lied.</strong> A hand-rolled divergence check in the shear-layer script used backward differences against the solver's forward-difference convention, and confidently flagged a correct solution as divergent. The suite stayed green the whole time, because the diagnostic sat outside the tested operators. Standing rule since: diagnostics are code, reviewed like code, and must call the solver's own tested operators.</div>
 
       <div class="proj-figure">
-        <img src="solver2d-ghia.png" alt="Centerline velocity profiles, this solver vs. Ghia et al. 1982, lid-driven cavity Re 100">
+        <img src="solver2d-ghia.png" alt="Centerline velocity profiles from this solver overlaid on Ghia et al. 1982 data, lid-driven cavity at Re 100">
         <span class="proj-figure-cap">Centerline u(y) and v(x), Re 100 lid-driven cavity, overlaid against Ghia et al. 1982</span>
       </div>
 
@@ -169,30 +175,30 @@
 
   <article class="proj" id="coldplate" data-cat="cfd ml thermal hpc">
     <div>
-      <div class="proj-visual"><img class="proj-visual-img" src="coldplate-cht.png" alt="Fluid domain velocity magnitude and metal domain thermal field, cold plate CHT sweep"></div>
-      <span class="visual-cap">Mid-plane velocity in the fluid domain and the conjugate thermal field in the metal</span>
+      <div class="proj-visual"><img class="proj-visual-img" src="coldplate-cht.png" alt="Mid-plane velocity magnitude in the fluid domain above the conjugate thermal field in the metal"></div>
+      <span class="visual-cap">Mid-plane velocity in the fluid domain and the thermal field in the metal</span>
     </div>
-    <div>
+    <div class="proj-body">
       <div class="proj-tags"><span class="tag">OpenFOAM</span><span class="tag">Gaussian Process</span><span class="tag">SLURM</span></div>
-      <h2 class="proj-title">Conjugate heat transfer design study: liquid-cooled cold plate</h2>
-      <span class="proj-context">Personal project, Apr 2026 – Aug 2026</span>
-      <p class="desc">A 96-case conjugate heat transfer design sweep of a liquid-cooled microchannel cold plate under a 700 W GPU-class heat load, automated end to end with a templated SLURM array pipeline on a university HPC cluster. A Gaussian Process surrogate trained on the converged sweep then drove a constrained grid-search optimization over the design space.</p>
+      <h2 class="proj-title">Conjugate heat transfer study of a liquid-cooled cold plate</h2>
+      <span class="proj-context">Personal project · Apr – Aug 2026</span>
+      <p class="desc">A liquid-cooled microchannel cold plate under a 700 W heat load, the order a modern accelerator dissipates. The design question is a trade: narrower channels move heat better but cost pumping power, so the useful comparison holds pumping power fixed. I swept 96 geometries through a templated SLURM array pipeline, then fitted a Gaussian Process surrogate to the converged runs and searched the design space with it rather than with more CFD.</p>
 
       <table class="spec-table">
         <tr><td>Solver</td><td>OpenFOAM, chtMultiRegionSimpleFoam</td></tr>
         <tr><td>Design sweep</td><td>96 cases: 4 channel widths × 2 fin thicknesses × 3 channel heights × 4 flow rates</td></tr>
-        <tr><td>Pipeline</td><td>Templated SLURM array jobs, Apptainer containers, university HPC cluster</td></tr>
+        <tr><td>Pipeline</td><td>Templated SLURM array jobs in Apptainer containers on a university HPC cluster</td></tr>
         <tr><td>Surrogate</td><td>Gaussian Process, Matérn kernel (scikit-learn), constrained grid-search optimization</td></tr>
-        <tr><td>Verification</td><td>Shah-London friction factor correlation (0.37% error at finest mesh); formal Grid Convergence Index study per Roache methodology</td></tr>
+        <tr><td>Verification</td><td>Shah-London friction factor correlation, 0.37% error at the finest mesh; Grid Convergence Index study per Roache</td></tr>
       </table>
 
       <div class="result-row">
-        <div class="result-item"><span class="val">89/96</span><span class="lbl">cases converged (92.7%)</span></div>
+        <div class="result-item"><span class="val">89/96</span><span class="lbl">cases converged</span></div>
         <div class="result-item"><span class="val">22%</span><span class="lbl">thermal resistance cut, matched pumping power</span></div>
         <div class="result-item"><span class="val">2.21% / 0.06%</span><span class="lbl">GCI, pressure drop / thermal resistance</span></div>
       </div>
 
-      <div class="callout"><strong>Surrogate checked against the solver:</strong> the GP's prediction at the optimum was confirmed against an independent CFD solve to five significant figures before being trusted.</div>
+      <div class="callout"><strong>The surrogate does not get the last word.</strong> The Gaussian Process prediction at the optimum was confirmed against an independent CFD solve before being trusted. A surrogate is an interpolator, and the only way to know it has not drifted at the point you actually care about is to go back and run the solver there.</div>
     </div>
   </article>
 
@@ -204,24 +210,24 @@
       </div>
       <span class="visual-cap">Buoy heave trace, free-surface elevation, and the VOF section through the overset mesh</span>
     </div>
-    <div>
-      <div class="proj-tags"><span class="tag">STAR-CCM+</span><span class="tag">Overset Mesh</span><span class="tag">VOF + DFBI</span></div>
+    <div class="proj-body">
+      <div class="proj-tags"><span class="tag">STAR-CCM+</span><span class="tag">Overset mesh</span><span class="tag">VOF + DFBI</span></div>
       <h2 class="proj-title">Marine CFD: submarine wake and buoy heave</h2>
-      <span class="proj-context">Course project, STAR-CCM+</span>
-      <p class="desc">Overset mesh with volume-of-fluid free-surface capture for a DARPA SUBOFF submarine wake, then DFBI plus overset coupling to a heaving buoy. The buoy's heave amplitude tracks its position relative to the moving submarine's wake and the submarine's speed.</p>
+      <span class="proj-context">Course project · STAR-CCM+</span>
+      <p class="desc">A two-part free-surface study. First, an overset mesh with volume-of-fluid capture resolves the wake of a DARPA SUBOFF hull travelling beneath the surface. Second, DFBI couples that wake to a floating cylindrical buoy and lets it heave freely, so the buoy becomes an instrument for the wake rather than just another body in the domain. Its heave amplitude tracks both its offset from the hull's path and the hull's speed.</p>
 
       <table class="spec-table">
-        <tr><td>Geometry</td><td>DARPA SUBOFF bare hull (L 4.356 m, D 0.508 m) + cylindrical buoy (D 1.0 m, H 4.0 m)</td></tr>
-        <tr><td>Domain</td><td>Symmetry-halved rectangular domain; free-surface runs add a 1-wavelength damping zone</td></tr>
-        <tr><td>Mesh</td><td>Overset: hull + buoy + background, ~4.5M cells, target y+ = 100</td></tr>
-        <tr><td>Boundary conditions</td><td>Froude-scaled velocity inlet, pressure outlet, slip/symmetry walls, no-slip hull, VOF interface</td></tr>
-        <tr><td>Solver settings</td><td>URANS + VOF + DFBI/overset; Elliptic Blending Reynolds Stress closure; timestep 0.001 s</td></tr>
+        <tr><td>Geometry</td><td>DARPA SUBOFF bare hull (L 4.356 m, D 0.508 m) and a cylindrical buoy (D 1.0 m, H 4.0 m)</td></tr>
+        <tr><td>Domain</td><td>Symmetry-halved rectangular domain; free-surface runs add a one-wavelength damping zone</td></tr>
+        <tr><td>Mesh</td><td>Overset: hull, buoy and background regions, roughly 4.5M cells</td></tr>
+        <tr><td>Boundary conditions</td><td>Froude-scaled velocity inlet, pressure outlet, slip symmetry walls, no-slip hull, VOF interface</td></tr>
+        <tr><td>Solver settings</td><td>URANS with elliptic blending Reynolds stress closure, VOF, DFBI overset motion, timestep 0.001 s</td></tr>
       </table>
 
       <div class="result-row">
-        <div class="result-item"><span class="val">±0.03 m</span><span class="lbl">buoy heave under wake</span></div>
+        <div class="result-item"><span class="val">±0.03 m</span><span class="lbl">buoy heave under the wake</span></div>
         <div class="result-item"><span class="val">4.5M</span><span class="lbl">cells, hull + buoy overset</span></div>
-        <div class="result-item"><span class="val">y+≈100</span><span class="lbl">target wall resolution</span></div>
+        <div class="result-item"><span class="val">y+ ≈ 100</span><span class="lbl">target wall resolution</span></div>
       </div>
     </div>
   </article>
@@ -231,17 +237,18 @@
       <div class="proj-visual"><img class="proj-visual-img" src="fsae-topdown.png" alt="Top-down velocity magnitude contour around the Formula Student full-vehicle CFD model"></div>
       <span class="visual-cap">Top-down velocity magnitude, full-vehicle external aero</span>
     </div>
-    <div>
+    <div class="proj-body">
       <div class="proj-tags"><span class="tag">ANSYS Fluent</span><span class="tag">STAR-CCM+</span><span class="tag">PyFluent</span></div>
-      <h2 class="proj-title">Formula Student aerodynamics, Veloce Racing</h2>
-      <span class="proj-context">2021–2023, Veloce Racing India</span>
-      <p class="desc">Full-vehicle external aerodynamics across 30+ configurations: bodywork, cockpit, main hoop, A-arms, wheels, and wing package, modeled in SolidWorks and run through a scripted DOE campaign. Component studies on the front and rear wing, plus internal sidepod cooling-duct flow with and without the radiator installed. The radiator-in run is the one that tells you whether the duct actually works.</p>
+      <h2 class="proj-title">Formula Student aerodynamics</h2>
+      <span class="proj-context">Aerodynamics lead · Veloce Racing · 2021 – 2023</span>
+      <p class="desc">Two seasons leading aerodynamics for the team's car, covering both the external package (bodywork, cockpit, main hoop, A-arms, wheels, wings) and the internal sidepod cooling duct. Meshing and case setup were scripted through PyFluent so a geometry change could be meshed, solved and post-processed overnight instead of over a week, which is what made a 30-configuration DOE affordable on a student timeline. The duct was run twice on purpose, with the radiator absent and installed, because only the second case shows whether it actually feeds the core.</p>
 
       <table class="spec-table">
         <tr><td>External aero</td><td>ANSYS Fluent, polyhexcore mesh, max skewness 0.74, min orthogonal quality 0.14</td></tr>
-        <tr><td>Boundary conditions</td><td>Velocity inlet 11.11 m/s at 1 atm, translational ground, rotating wheel walls, K-ω SST with Gamma Transition</td></tr>
-        <tr><td>Cooling duct</td><td>Outlet area matched to radiator core (0.06311 m²), inlet ~0.7× that; peak duct velocity 19.9 m/s clean vs. 31.4 m/s with radiator</td></tr>
-        <tr><td>Automation</td><td>Meshing + case setup scripted via PyFluent's Settings API; ParaView batch post-processing for Cp, downforce, drag, Cl/Cd across the run matrix</td></tr>
+        <tr><td>Boundary conditions</td><td>Velocity inlet 11.11 m/s at 1 atm, translational ground, rotating wheel walls, k-ω SST with gamma transition</td></tr>
+        <tr><td>Cooling duct</td><td>Outlet area matched to the 0.06311 m² radiator core, inlet roughly 0.7× that; peak duct velocity 19.9 m/s clean against 31.4 m/s with the radiator installed</td></tr>
+        <tr><td>Automation</td><td>PyFluent Settings API for meshing and setup, ParaView batch post-processing for Cp, downforce, drag and Cl/Cd across the run matrix</td></tr>
+        <tr><td>Validation</td><td>Wind-tunnel testing against the CFD predictions</td></tr>
       </table>
 
       <div class="result-row">
@@ -251,58 +258,56 @@
       </div>
 
       <div class="proj-figure">
-        <img src="fsae-pathlines.png" alt="Velocity magnitude pathlines around the front wing and nose, rotating tire feed into sidepod">
+        <img src="fsae-pathlines.png" alt="Velocity magnitude pathlines around the front wing and nose showing rotating tire feed into the sidepod">
         <span class="proj-figure-cap">Front wing and nose pathlines, rotating tire, checking feed into the sidepod duct</span>
       </div>
     </div>
   </article>
 
-  <article class="proj" id="kirloskar" data-cat="ml">
-    <div class="proj-visual proj-visual-static"><span class="proj-visual-label">Screw Compressor</span></div>
-    <div>
+  <article class="proj no-viz" id="kirloskar" data-cat="ml thermal">
+    <div class="proj-body">
       <div class="proj-tags"><span class="tag">Python</span><span class="tag">Gaussian Process</span><span class="tag">POD / SVD</span></div>
       <h2 class="proj-title">Screw compressor: thermodynamic model and surrogate</h2>
-      <span class="proj-context">Research co-op, Kirloskar Pneumatic</span>
-      <p class="desc">A chamber-volume thermodynamic model of a twin-screw compressor with six leakage paths integrated against CoolProp. The no-leakage base case overpredicted mass flow by ~66 g/cycle versus vendor software. That gap motivated adding the leakage terms. A POD-reduced Gaussian Process surrogate then maps rotor geometry to the compressed chamber-cycle response.</p>
+      <span class="proj-context">Research co-op · Kirloskar Pneumatic · 2024 – 2025</span>
+      <p class="desc">A chamber-volume thermodynamic model of a twin-screw compressor, written in Python against CoolProp. The base model, with no leakage, overpredicted mass flow by around 66 g per cycle against vendor software, and closing that gap meant integrating six separate leakage paths. Once the model was trustworthy I compressed 1,000 runs with POD and fitted a Gaussian Process to map rotor geometry directly to the chamber-cycle response, turning a design study that needed a solve per candidate into one that needed a prediction.</p>
 
       <table class="spec-table">
-        <tr><td>Domain</td><td>Single working chamber vs. rotor crank angle (0–360°): lumped thermodynamic model, not 3D CFD</td></tr>
-        <tr><td>Training data</td><td>1,000 runs × 700 crank-angle steps per run, forming the POD snapshot matrix</td></tr>
-        <tr><td>Dimensionality reduction</td><td>Truncated SVD (POD): 3 to 8 modes typically capture ~99% of variance</td></tr>
-        <tr><td>Surrogate</td><td>Gaussian Process, Matérn kernel (ν=2.5) plus a white-noise kernel for solver noise</td></tr>
-        <tr><td>Inputs</td><td>L/D ratio, wrap angle, lobe combination, rotor speed, with a scaler fit on the training split only</td></tr>
+        <tr><td>Domain</td><td>Single working chamber against rotor crank angle (0–360°), a lumped thermodynamic model rather than 3D CFD</td></tr>
+        <tr><td>Physics</td><td>Six leakage paths integrated against CoolProp property data</td></tr>
+        <tr><td>Training data</td><td>1,000 runs × 700 crank-angle steps, forming the POD snapshot matrix</td></tr>
+        <tr><td>Dimensionality reduction</td><td>Truncated SVD (POD), 3 to 8 modes typically capturing about 99% of variance</td></tr>
+        <tr><td>Surrogate</td><td>Gaussian Process, Matérn kernel (ν = 2.5) with a white-noise term for solver noise; inputs are L/D ratio, wrap angle, lobe combination and rotor speed, scaled on the training split only</td></tr>
       </table>
 
       <div class="result-row">
         <div class="result-item"><span class="val">~66 g/cyc</span><span class="lbl">base-case mass-flow overprediction</span></div>
-        <div class="result-item"><span class="val">3–8 modes</span><span class="lbl">~99% variance captured</span></div>
-        <div class="result-item"><span class="val">1000×700</span><span class="lbl">runs × crank-angle steps</span></div>
+        <div class="result-item"><span class="val">3–8 modes</span><span class="lbl">~99% of variance captured</span></div>
+        <div class="result-item"><span class="val">1000 × 700</span><span class="lbl">runs × crank-angle steps</span></div>
       </div>
     </div>
   </article>
 
-  <article class="proj" id="cfmlab" data-cat="hpc">
-    <div class="proj-visual proj-visual-static"><span class="proj-visual-label">GPU DNS Port</span></div>
-    <div>
+  <article class="proj no-viz" id="cfmlab" data-cat="hpc cfd">
+    <div class="proj-body">
       <div class="proj-tags"><span class="tag">CUDA / HIP</span><span class="tag">Fortran</span><span class="tag">MPI</span></div>
       <h2 class="proj-title">GPU-accelerated DNS: pressure-Poisson solver port</h2>
-      <span class="proj-context">Research Assistant, Computational Fluid Mechanics Lab, UW</span>
-      <p class="desc">Working inside the lab's flagship DNS solver for droplet-laden turbulent flows: C/CUDA kernels with Fortran host wrappers and MPI on the Hyak cluster. Focused on the critical pressure-Poisson solver: optimizing it on NVIDIA architectures, then porting the CUDA implementation to AMD GPUs via HIP and hipFFT, verified against Taylor-Green vortex regressions.</p>
+      <span class="proj-context">Research Assistant · Computational Fluid Mechanics Lab, UW · 2025 – present</span>
+      <p class="desc">The lab's flagship DNS solver for droplet-laden turbulent flows runs C/CUDA kernels behind Fortran host wrappers with MPI on the Hyak cluster. My work targets its pressure-Poisson solve, the most expensive step in the timeloop: first optimizing it on NVIDIA hardware, then porting that implementation to AMD GPUs using HIP and hipFFT. A port like this is deceptively risky, because the code will happily run and produce a field that looks correct while being subtly wrong, so nothing counts until it passes the same gates the original did.</p>
 
       <table class="spec-table">
-        <tr><td>Codebase</td><td>C/CUDA kernels, Fortran host wrappers, MPI, run on the UW Hyak cluster</td></tr>
-        <tr><td>Target</td><td>Pressure-Poisson solver, performance optimization on NVIDIA architectures</td></tr>
-        <tr><td>Port</td><td>CUDA → AMD GPU via HIP + hipFFT</td></tr>
-        <tr><td>Verification</td><td>Lab's <code>ptest</code> framework: random right-hand sides, no special structure, identities that must hold for any input. Taylor-Green vortex regression gates every change</td></tr>
+        <tr><td>Codebase</td><td>C/CUDA kernels, Fortran host wrappers, MPI, on the UW Hyak cluster</td></tr>
+        <tr><td>Target</td><td>The pressure-Poisson solve, optimized on NVIDIA architectures</td></tr>
+        <tr><td>Port</td><td>CUDA to AMD GPUs via HIP, cuFFT to hipFFT</td></tr>
+        <tr><td>Verification</td><td>Taylor-Green vortex regressions gate every change, alongside the lab's ptest operator suite</td></tr>
       </table>
 
-      <div class="result-row">
-        <div class="result-item"><span class="val">HIP</span><span class="lbl">+ hipFFT AMD port</span></div>
-        <div class="result-item"><span class="val">TGV</span><span class="lbl">regression gate on every change</span></div>
-      </div>
+      <div class="callout"><strong>Why random right-hand sides.</strong> The lab's ptest framework drives the operators with random inputs rather than smooth analytic fields, and checks identities that must hold for any input at all. Smooth test cases are forgiving: they can hide index transpositions, mishandled boundary rows and sign errors that a random field exposes immediately.</div>
+
+      <div class="proj-links"><span class="soon">APS-DFD 2026 abstract in preparation</span><span class="soon">Research code, not public</span></div>
     </div>
   </article>
 
+  </div>
 </main>
 
 <footer>
@@ -316,63 +321,167 @@
 
 <script>
 /* filter chips */
-document.querySelectorAll('.chip').forEach(chip=>{
-  chip.addEventListener('click', ()=>{
-    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+document.querySelectorAll('.chip').forEach(function(chip){
+  chip.addEventListener('click', function(){
+    document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
     chip.classList.add('active');
-    const f = chip.dataset.filter;
-    document.querySelectorAll('.proj').forEach(p=>{
-      const cats = p.dataset.cat.split(' ');
-      p.style.display = (f==='all' || cats.includes(f)) ? 'grid' : 'none';
+    var f = chip.dataset.filter;
+    document.querySelectorAll('.proj').forEach(function(p){
+      var cats = p.dataset.cat.split(' ');
+      var show = (f === 'all' || cats.indexOf(f) !== -1);
+      p.style.display = show ? (p.classList.contains('no-viz') ? 'block' : 'grid') : 'none';
     });
   });
 });
+</script>
 
-/* exact Taylor-Green vortex, same closed-form solution as index.html,
-   rendered once as a fixed full-page background rather than per-card figures */
+<script>
+/* ---------------------------------------------------------------
+   Exact Taylor-Green vortex, tiled to fill any viewport.
+     u =  cos(x) sin(y) F(t)
+     v = -sin(x) cos(y) F(t)
+     omega = -2 cos(x) cos(y) F(t)
+     F(t) = exp(-2 nu t)
+   The number of 2-pi periods drawn is derived from the viewport size
+   so vortex cells stay square at any aspect ratio, portrait or ultrawide.
+--------------------------------------------------------------- */
 function initTGV(canvasEl, opts){
-  const ctx = canvasEl.getContext('2d');
-  const NX = opts.cols || 130, NY = opts.rows || 76;
-  const off = document.createElement('canvas');
-  off.width = NX; off.height = NY;
-  const octx = off.getContext('2d');
-  const imgData = octx.createImageData(NX, NY);
-  const TWO = Math.PI * 2;
-  const nu = opts.nu || 0.045;
-  const cycle = opts.cycle || 28;
-  function resize(){ canvasEl.width = window.innerWidth * devicePixelRatio; canvasEl.height = window.innerHeight * devicePixelRatio; }
-  resize(); window.addEventListener('resize', resize);
-  function hex2rgb(h){ h=h.replace('#',''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
-  const BG=hex2rgb('#0a0e12'), WARM=hex2rgb('#e8542a'), COOL=hex2rgb('#2596a1');
-  let T = Math.random()*cycle, last = performance.now();
+  opts = opts || {};
+  if(!canvasEl) return;
+  var ctx = canvasEl.getContext('2d', {alpha:false});
+  var off = document.createElement('canvas');
+  var octx = off.getContext('2d');
+  var TWO = Math.PI * 2;
+  var nu = opts.nu || 0.045;
+  var cycle = opts.cycle || 28;
+  var CELL = opts.cellPx || 430;     // on-screen px per 2-pi period
+  var SPP = opts.samplesPerPeriod || 60;
+  var MAXDIM = 220;
+  var useTracers = !!opts.tracers;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var NX = 1, NY = 1, pX = 1, pY = 1, spanX = TWO, spanY = TWO;
+  var imgData = null, W = 0, H = 0, P = [];
+
+  function hex2rgb(h){ h = h.replace('#',''); return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
+  var BG = hex2rgb('#0a0e12'), WARM = hex2rgb('#e8542a'), COOL = hex2rgb('#2596a1');
+
+  function seed(){
+    P = [];
+    if(!useTracers) return;
+    var density = opts.tracerDensity || 2600;
+    var n = Math.max(120, Math.min(1500, Math.round(W * H / density)));
+    for(var i = 0; i < n; i++) P.push({x: Math.random()*spanX, y: Math.random()*spanY, a: Math.random()*6});
+  }
+
+  function layout(){
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvasEl.clientWidth || window.innerWidth;
+    H = canvasEl.clientHeight || window.innerHeight;
+    if(W <= 0 || H <= 0) return false;
+    canvasEl.width = Math.max(1, Math.round(W * dpr));
+    canvasEl.height = Math.max(1, Math.round(H * dpr));
+    pX = Math.max(1, Math.round(W / CELL));
+    pY = Math.max(1, Math.round(H / CELL));
+    spanX = TWO * pX; spanY = TWO * pY;
+    NX = Math.min(MAXDIM, Math.max(24, pX * SPP));
+    NY = Math.min(MAXDIM, Math.max(24, pY * SPP));
+    off.width = NX; off.height = NY;
+    imgData = octx.createImageData(NX, NY);
+    seed();
+    return true;
+  }
+
+  layout();
+
+  var pending = false;
+  window.addEventListener('resize', function(){
+    if(pending) return;
+    pending = true;
+    requestAnimationFrame(function(){ pending = false; layout(); });
+  });
+
+  function vel(x, y, F){ return [Math.cos(x)*Math.sin(y)*F, -Math.sin(x)*Math.cos(y)*F]; }
+
+  var T = Math.random() * cycle, last = performance.now(), running = true;
+
+  document.addEventListener('visibilitychange', function(){
+    var wasRunning = running;
+    running = !document.hidden;
+    if(running && !wasRunning){ last = performance.now(); requestAnimationFrame(frame); }
+  });
+
   function frame(now){
-    const dt = Math.min(0.05,(now-last)/1000); last = now;
-    const t = T % cycle;
-    const F = Math.exp(-2*nu*t);
-    const fade = Math.min(Math.min(1,t/1.2), Math.min(1,(cycle-t)/1.2));
-    const d = imgData.data; let idx=0;
-    for(let j=0;j<NY;j++){
-      const y=(j/NY)*TWO, cy=Math.cos(y);
-      for(let i=0;i<NX;i++){
-        const x=(i/NX)*TWO;
-        const w = -2*Math.cos(x)*cy*F*fade;
-        const a = Math.max(-1,Math.min(1,w));
-        const m = Math.pow(Math.abs(a),0.75);
-        const c = a<0?COOL:WARM;
-        d[idx++]=BG[0]+(c[0]-BG[0])*m; d[idx++]=BG[1]+(c[1]-BG[1])*m; d[idx++]=BG[2]+(c[2]-BG[2])*m; d[idx++]=255;
+    if(!running) return;
+    if(!imgData && !layout()){ requestAnimationFrame(frame); return; }
+    var dt = reduce ? 0 : Math.min(0.05, (now - last) / 1000);
+    last = now;
+    var t = T % cycle;
+    var F = Math.exp(-2 * nu * t);
+    var fade = Math.min(Math.min(1, t/1.5), Math.min(1, (cycle - t)/1.5));
+
+    var d = imgData.data, idx = 0;
+    for(var j = 0; j < NY; j++){
+      var y = (j/NY) * spanY, cy = Math.cos(y);
+      for(var i = 0; i < NX; i++){
+        var x = (i/NX) * spanX;
+        var w = -2 * Math.cos(x) * cy * F * fade;
+        var a = Math.max(-1, Math.min(1, w));
+        var m = Math.pow(Math.abs(a), 0.75);
+        var c = a < 0 ? COOL : WARM;
+        d[idx++] = BG[0] + (c[0]-BG[0]) * m;
+        d[idx++] = BG[1] + (c[1]-BG[1]) * m;
+        d[idx++] = BG[2] + (c[2]-BG[2]) * m;
+        d[idx++] = 255;
       }
     }
-    octx.putImageData(imgData,0,0);
+    octx.putImageData(imgData, 0, 0);
     ctx.imageSmoothingEnabled = true;
-    ctx.clearRect(0,0,canvasEl.width,canvasEl.height);
-    ctx.drawImage(off,0,0,canvasEl.width,canvasEl.height);
+    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    ctx.drawImage(off, 0, 0, canvasEl.width, canvasEl.height);
+
+    if(useTracers && P.length){
+      var sx = canvasEl.width / spanX, sy = canvasEl.height / spanY;
+      var adt = 2.7 * dt;
+      var dprT = Math.min(window.devicePixelRatio || 1, 2);
+      // short round-capped streaks: they read as flow direction, and a
+      // near-stationary tracer still renders as a round dot
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = (opts.tracerSize || 3.6) * dprT;
+      ctx.strokeStyle = 'rgba(240,237,229,' + (fade * 0.92).toFixed(3) + ')';
+      ctx.beginPath();
+      for(var p = 0; p < P.length; p++){
+        var q = P[p];
+        var ox = q.x, oy = q.y;
+        var v1 = vel(q.x, q.y, F);
+        var v2 = vel(q.x + 0.5*adt*v1[0], q.y + 0.5*adt*v1[1], F);
+        q.x += adt * v2[0]; q.y += adt * v2[1];
+        var wrapped = false;
+        if(q.x < 0){ q.x += spanX; wrapped = true; }
+        else if(q.x > spanX){ q.x -= spanX; wrapped = true; }
+        if(q.y < 0){ q.y += spanY; wrapped = true; }
+        else if(q.y > spanY){ q.y -= spanY; wrapped = true; }
+        var cxp = q.x * sx, cyp = q.y * sy;
+        if(wrapped){
+          ctx.moveTo(cxp, cyp);
+          ctx.lineTo(cxp + 0.01, cyp);
+        } else {
+          ctx.moveTo(ox * sx, oy * sy);
+          ctx.lineTo(cxp, cyp);
+        }
+      }
+      ctx.stroke();
+    }
+
     T += dt;
+    if(t + dt >= cycle) seed();
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 }
-const bgCanvas = document.getElementById('tgv-bg');
-if(bgCanvas) initTGV(bgCanvas, {cols:130, rows:76, nu:0.045, cycle:28});
+
+initTGV(document.getElementById('tgv-bg'), {tracers:true, cellPx:430, nu:0.045, cycle:28});
 </script>
 
 </body>
