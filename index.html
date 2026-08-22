@@ -425,7 +425,7 @@ function initTGV(canvasEl, opts){
   // Tracers are grouped into these each frame so same-color segments share
   // one stroke() call instead of paying a state change per particle.
   var buckets = [[],[],[],[],[],[],[],[]];
-  var SPEED = opts.speed || 2.0;
+  var SPEED = opts.speed || 2.5;
 
   function layout(){
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
