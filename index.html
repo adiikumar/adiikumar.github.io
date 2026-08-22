@@ -361,22 +361,58 @@ function initTGV(canvasEl, opts){
   var imgData = null, W = 0, H = 0, P = [];
 
   function hex2rgb(h){ h = h.replace('#',''); return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
-  function luma(c){ return 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2]; }
-  var BG = hex2rgb('#0a0e12'), WARM = hex2rgb('#e8542a'), COOL = hex2rgb('#2596a1');
-  var NEAR_WHITE = [247, 244, 235];
-  // Orange-red and teal are not equally bright to the eye even at full
-  // strength (teal reads noticeably brighter, since human vision weights
-  // green and blue far more than red when judging brightness). Blending
-  // both hues toward black or white by the SAME mix fraction leaves warm
-  // tracers looking dimmer at every tier. Teal stays the reference; warm's
-  // mix fraction is solved so it lands on the exact same perceived
-  // brightness, not just the same blend amount.
-  var L_BG = luma(BG), L_WARM = luma(WARM), L_COOL = luma(COOL), L_HI = luma(NEAR_WHITE);
-  function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
-  function matchedWarmMix(fromLuma, toLuma, mixCool, coolFromLuma, coolToLuma){
-    var targetLuma = coolFromLuma + mixCool * (coolToLuma - coolFromLuma);
-    return clamp01((targetLuma - fromLuma) / (toLuma - fromLuma));
+  // Brightness boosts are applied in HSL, not raw RGB. Multiplying RGB
+  // channels directly clips straight to (255,255,255) on saturated colors
+  // well before it looks "brighter" -- that is the same washed-white bug
+  // from before, just re-triggered by a larger multiplier. Boosting
+  // LIGHTNESS instead, capped short of pure white, keeps the hue intact
+  // at any brightness percentage.
+  function rgb2hsl(c){
+    var r=c[0]/255, g=c[1]/255, b=c[2]/255;
+    var max=Math.max(r,g,b), min=Math.min(r,g,b), l=(max+min)/2, h=0, s=0;
+    if(max !== min){
+      var d = max-min;
+      s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+      if(max===r) h = (g-b)/d + (g<b?6:0);
+      else if(max===g) h = (b-r)/d + 2;
+      else h = (r-g)/d + 4;
+      h /= 6;
+    }
+    return [h,s,l];
   }
+  function hue2rgbCh(p,q,t){
+    if(t<0) t+=1; if(t>1) t-=1;
+    if(t<1/6) return p+(q-p)*6*t;
+    if(t<1/2) return q;
+    if(t<2/3) return p+(q-p)*(2/3-t)*6;
+    return p;
+  }
+  function hsl2rgb(h,s,l){
+    if(s===0){ var v=Math.round(l*255); return [v,v,v]; }
+    var q = l<0.5 ? l*(1+s) : l+s-l*s;
+    var p = 2*l-q;
+    return [
+      Math.round(hue2rgbCh(p,q,h+1/3)*255),
+      Math.round(hue2rgbCh(p,q,h)*255),
+      Math.round(hue2rgbCh(p,q,h-1/3)*255)
+    ];
+  }
+  function boostLightness(c, pct, capL){
+    var hsl = rgb2hsl(c);
+    var newL = Math.min(capL !== undefined ? capL : 0.85, hsl[2] * (1 + pct));
+    return hsl2rgb(hsl[0], hsl[1], newL);
+  }
+  var BG = hex2rgb('#0a0e12'), WARM = hex2rgb('#e8542a'), COOL = hex2rgb('#2596a1');
+  // Dedicated neon anchors for the tracers only (the field itself keeps the
+  // site's muted WARM/COOL). Pure saturated red is physically one of the
+  // dimmest hues to the human eye, so any attempt to match it in brightness
+  // to blue means pushing it further toward white, which is what drains its
+  // color out. Real neon signs are not equally bright across colors either;
+  // a cyan tube just reads brighter than a red one at the same power, and
+  // both still look vividly neon. So: no shared white endpoint at all. Each
+  // hue blends only within its own saturated family, low to high.
+  var NEON_RED_LO = hex2rgb('#ff0044'), NEON_RED_HI = hex2rgb('#ff6f8f');
+  var NEON_BLUE_LO = hex2rgb('#00c2ff'), NEON_BLUE_HI = hex2rgb('#8fe9ff');
 
   function seed(){
     P = [];
@@ -389,7 +425,7 @@ function initTGV(canvasEl, opts){
   // Tracers are grouped into these each frame so same-color segments share
   // one stroke() call instead of paying a state change per particle.
   var buckets = [[],[],[],[],[],[],[],[]];
-  var SPEED = opts.speed || 1.175;
+  var SPEED = opts.speed || 1.6;
 
   function layout(){
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -483,25 +519,35 @@ function initTGV(canvasEl, opts){
       // that instead of chasing a bigger blur.
       var glowPalette = new Array(8), corePalette = new Array(8);
       for(var s = 0; s < 2; s++){
-        var base = s ? WARM : COOL;
-        var baseLuma = s ? L_WARM : L_COOL;
+        var lo = s ? NEON_RED_LO : NEON_BLUE_LO;
+        var hi = s ? NEON_RED_HI : NEON_BLUE_HI;
         for(var k = 0; k < 4; k++){
           var te = Math.pow(levels[k], 0.6);
-          var gMixCool = 0.28 + 0.7 * te;
-          var gMix = s ? matchedWarmMix(L_BG, L_WARM, gMixCool, L_BG, L_COOL) : gMixCool;
-          var gr = (BG[0] + (base[0]-BG[0]) * gMix) | 0;
-          var gg = (BG[1] + (base[1]-BG[1]) * gMix) | 0;
-          var gb = (BG[2] + (base[2]-BG[2]) * gMix) | 0;
-          var gal = globalAlpha * (0.5 + 0.4 * te);
-          glowPalette[s*4 + k] = 'rgba(' + gr + ',' + gg + ',' + gb + ',' + gal.toFixed(3) + ')';
 
-          var cMixCool = 0.3 + 0.32 * te;
-          var cMix = s ? matchedWarmMix(L_WARM, L_HI, cMixCool, L_COOL, L_HI) : cMixCool;
-          var cr = (base[0] + (NEAR_WHITE[0]-base[0]) * cMix) | 0;
-          var cg = (base[1] + (NEAR_WHITE[1]-base[1]) * cMix) | 0;
-          var cb = (base[2] + (NEAR_WHITE[2]-base[2]) * cMix) | 0;
-          var cal = globalAlpha * (0.75 + 0.25 * te);
-          corePalette[s*4 + k] = 'rgba(' + cr + ',' + cg + ',' + cb + ',' + cal.toFixed(3) + ')';
+          // Glow: black up to the saturated neon low-anchor. Never reaches
+          // white, so it always reads as a colored halo, not a pale wash.
+          var gMix = 0.42 + 0.55 * te;
+          var gr = (BG[0] + (lo[0]-BG[0]) * gMix) | 0;
+          var gg = (BG[1] + (lo[1]-BG[1]) * gMix) | 0;
+          var gb = (BG[2] + (lo[2]-BG[2]) * gMix) | 0;
+          // Red glow +200% lightness, blue glow +75%, capped short of
+          // white so the boost never washes the hue out.
+          var gBoosted = boostLightness([gr,gg,gb], s ? 2.0 : 0.75, 0.6);
+          var gal = globalAlpha * (0.62 + 0.35 * te);
+          glowPalette[s*4 + k] = 'rgba(' + gBoosted[0] + ',' + gBoosted[1] + ',' + gBoosted[2] + ',' + gal.toFixed(3) + ')';
+
+          // Core: the neon low-anchor up to the neon high-anchor, a lighter
+          // shade of the SAME hue rather than a shared near-white. It gets
+          // brighter with speed without ever losing its color identity.
+          var cMix = 0.15 + 0.55 * te;
+          var cr = (lo[0] + (hi[0]-lo[0]) * cMix) | 0;
+          var cg = (lo[1] + (hi[1]-lo[1]) * cMix) | 0;
+          var cb = (lo[2] + (hi[2]-lo[2]) * cMix) | 0;
+          // Red core +200% lightness, blue core +75%, capped at 0.9 so
+          // even the biggest boost stops short of pure white.
+          var cBoosted = boostLightness([cr,cg,cb], s ? 2.0 : 0.75, 0.78);
+          var cal = globalAlpha * (0.8 + 0.2 * te);
+          corePalette[s*4 + k] = 'rgba(' + cBoosted[0] + ',' + cBoosted[1] + ',' + cBoosted[2] + ',' + cal.toFixed(3) + ')';
         }
       }
       for(var bi = 0; bi < 8; bi++) buckets[bi].length = 0;
@@ -541,13 +587,15 @@ function initTGV(canvasEl, opts){
         var path = new Path2D();
         for(var qi = 0; qi < bucket.length; qi++){
           var qq = bucket[qi];
-          if(qq.wrapped){
-            path.moveTo(qq.x * sx, qq.y * sy);
-            path.lineTo(qq.x * sx + 0.01, qq.y * sy);
-          } else {
-            path.moveTo(qq.px * sx, qq.py * sy);
-            path.lineTo(qq.x * sx, qq.y * sy);
-          }
+          // Always a point at the CURRENT position only, never a line back
+          // to where it was last frame. A round-capped stroke whose length
+          // approaches its width stops reading as a dot and starts reading
+          // as a capsule/worm; a true zero-length segment sidesteps that
+          // entirely; motion is still visible frame to frame, just not
+          // drawn as a literal trail.
+          var cx = qq.x * sx, cy = qq.y * sy;
+          path.moveTo(cx, cy);
+          path.lineTo(cx + 0.01, cy);
         }
 
         ctx.lineWidth = glowWidth;
@@ -572,7 +620,7 @@ function initTGV(canvasEl, opts){
   requestAnimationFrame(frame);
 }
 
-initTGV(document.getElementById('tgv-bg'), {tracers:true, cellPx:430, nu:0.045, cycle:38});
+initTGV(document.getElementById('tgv-bg'), {tracers:true, cellPx:430, nu:0.045, cycle:28});
 </script>
 
 
